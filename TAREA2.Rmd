@@ -1,0 +1,255 @@
+---
+title: "TAREA 2 - SERIES DE TIEMPO"
+subtitle: "Correlograma de Autocorrelación (ACF) y Autocorrelación Parcial (PACF)"
+author: "Paredes Valerio, Gustavo"
+institute: "UNMSM - FCE" 
+date: "2024-08-31"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Cargamos los paquetes
+ 
+```{r}
+library(readxl)
+library(ggplot2)
+```
+
+
+# Cargamos la data
+
+```{r, echo=TRUE, eval = TRUE}
+data <- read_excel("C:\\Users\\guspv\\Downloads\\T2 -Paredes.xlsx")
+View(data)
+```
+ 
+
+# Lista de nombres de columnas
+
+```{r, echo=TRUE}
+columnas <- c("serie1", "serie2", "serie3", "serie4")
+```
+
+
+# Función para calcular la PACF usando la fórmula de Durbin
+
+
+```{r}
+  
+pacf_durbin <- function(x, max.lag) {
+  n <- length(x)
+  pacf_vals <- numeric(max.lag)  # Vector para almacenar los valores PACF
+
+  # Calcula la ACF hasta el máximo número de rezagos
+  acf_vals <- acf(x, plot = FALSE, lag.max = max.lag)$acf[-1]  # Excluye la ACF en lag 0
+
+  # Inicializa el primer valor PACF
+  pacf_vals[1] <- acf_vals[1]
+
+  # Aplica la fórmula de Durbin para calcular los valores PACF
+  for (k in 2:max.lag) {
+    numerador <- acf_vals[k] - sum(pacf_vals[1:(k-1)] * acf_vals[k:2])
+    denominador <- 1 - sum(pacf_vals[1:(k-1)] * acf_vals[1:(k-1)])
+    pacf_vals[k] <- numerador / denominador
+  }
+
+  return(pacf_vals)
+}
+
+# Lista de nombres de columnas
+columnas <- colnames(data)  # Obtiene todos los nombres de las columnas
+
+# Define el máximo número de rezagos
+max.lag <- 15
+```
+
+# Serie 1
+
+```{r}
+# Selecciona la cuarta serie de datos
+serie1 <- ts(data[[1]])
+
+# Calcular y graficar ACF para la Serie 1
+acf(serie1, main = "Correlograma de Autocorrelación (ACF) para Serie 1", lag.max = 15)
+
+# Calcular y graficar PACF para la Serie 1
+pacf(serie1, main = "Correlograma de Autocorrelación Parcial (PACF) para Serie 1", lag.max = 15)
+```
+
+## ACF (Autocorrelación):
+
+- Rezago 1: La autocorrelación es ligeramente negativa (-0.102), lo que indica que los valores de la serie están ligeramente inversamente correlacionados con los valores de un rezago anterior.
+- Rezago 3 y 4: Se observan valores de autocorrelación positivos y relativamente más altos (0.147 y 0.153), lo que sugiere una posible correlación positiva en estos rezagos.
+- Rezago 5 y 7: Aquí la autocorrelación vuelve a ser negativa, lo que sugiere alguna relación inversa en estos rezagos.
+- Rezago 8 a 15: Los valores de autocorrelación son pequeños, lo que sugiere que la serie no tiene una autocorrelación fuerte en estos rezagos.
+
+## PACF (Autocorrelación Parcial):
+
+- Rezago 3 y 4: Se observa un comportamiento similar al de la ACF, con valores positivos relativamente más altos (0.153 y 0.189), lo que podría indicar una dependencia directa con esos rezagos, controlando por los rezagos intermedios.
+- Rezago 7: Un valor PACF notablemente negativo (-0.176) sugiere una relación inversa significativa con los valores en ese rezago, después de controlar los efectos de los rezagos anteriores.
+- Rezago 12 a 15: Los valores de PACF son bajos, lo que implica que los rezagos más largos no están fuertemente correlacionados con los valores presentes.
+
+## Q-Stat y Prob (Estadística Q y p-valor asociado):
+
+Los valores de la estadística Q van aumentando progresivamente con el rezago, lo que es esperado.
+Los p-valores (Prob) asociados son todos mayores a 0.05, lo que sugiere que no hay evidencia significativa para rechazar la hipótesis de no autocorrelación en ninguno de los rezagos.
+
+## Conclusión:
+
+La serie temporal muestra algunos picos aislados de autocorrelación (AC y PAC) en los rezagos 3, 4 y 7, lo que podría indicar la presencia de alguna estructura en esos rezagos. Sin embargo, la mayoría de los valores de AC y PAC son cercanos a cero, y los p-valores elevados de la prueba Q indican que no hay autocorrelaciones significativas en general, lo que sugiere que la serie es aproximadamente "ruido blanco" o que no tiene un patrón de autocorrelación claro.
+
+
+# Serie 2
+
+```{r}
+# Selecciona la cuarta serie de datos
+serie2 <- ts(data[[2]])
+
+# Calcular y graficar ACF para la Serie 2
+acf(serie2, main = "Correlograma de Autocorrelación (ACF) para Serie 2", lag.max = 15)
+
+# Calcular y graficar PACF para la Serie 2
+pacf(serie2, main = "Correlograma de Autocorrelación Parcial (PACF) para Serie 2", lag.max = 15)
+```
+
+## ACF (Autocorrelación):
+- ACF lag 1 (-0.815): Hay una autocorrelación negativa muy fuerte en el primer retardo, lo que sugiere que los valores de la serie tienden a revertirse fuertemente después de un periodo.
+- ACF lag 2 (0.658): La autocorrelación es positiva y significativa en el segundo retardo, lo que indica un cambio en la dirección de la serie.
+- ACF lag 3 (-0.775): Nuevamente, se observa una fuerte autocorrelación negativa, lo que refuerza la oscilación en la serie.
+- ACF lag 4 (0.903): Este retardo muestra una autocorrelación muy alta y positiva, lo que indica una fuerte relación entre los valores de la serie con un retardo de cuatro periodos.
+- ACF lag 5 (-0.755): La autocorrelación vuelve a ser negativa, siguiendo el patrón de oscilación.
+- ACF lag 6 (0.612): Aunque disminuye, sigue habiendo una autocorrelación positiva significativa.
+
+El patrón general de la ACF muestra una alternancia entre valores negativos y positivos, con magnitudes significativas, lo que sugiere un patrón oscilatorio o cíclico en la serie.
+
+## PACF (Autocorrelación Parcial):
+
+- PACF lag 1 (-0.815): La PACF en el primer retardo es igual a la ACF, lo que es esperado.
+- PACF lag 2 (-0.017): La autocorrelación parcial para el segundo retardo es casi nula, lo que indica que, una vez que se controla por el primer retardo, el segundo no tiene una influencia directa significativa.
+- PACF lag 3 (-0.725): La autocorrelación parcial en el tercer retardo es muy similar a la ACF, lo que podría sugerir que la serie tiene una estructura autoregresiva.
+- PACF lag 4 (0.423): El valor positivo y significativo indica una posible influencia del cuarto retardo.
+- PACF lag 5 (0.293): Este valor indica una autocorrelación parcial positiva, pero no tan fuerte como en retardos anteriores.
+
+En general, los valores de la PACF disminuyen después de los primeros retardos, pero algunos de los valores siguen siendo significativos, lo que sugiere una posible combinación de procesos autoregresivos y de medias móviles.
+
+## Q-Stat y Probabilidad:
+
+- Q-Stat: Los valores de la estadística de Ljung-Box son altos y aumentan con cada retardo, lo que indica que las autocorrelaciones acumulativas son significativas.
+Probabilidad: Los valores de probabilidad son muy bajos (prácticamente cero) para todos los retardos, lo que indica que hay una fuerte autocorrelación en la serie.
+
+## Conclusión:
+
+La serie muestra un fuerte patrón oscilatorio con cambios alternados entre autocorrelaciones positivas y negativas, lo que sugiere la presencia de un ciclo o componente estacional en la serie. El comportamiento de la PACF, con valores significativos en los primeros retardos, sugiere que un modelo mixto ARMA (Autoregresivo y de Media Móvil) podría ser adecuado para esta serie. La fuerte autocorrelación en retardos específicos podría indicar la necesidad de un componente estacional en el modelado.
+
+
+
+# Serie 3
+
+```{r}
+# Selecciona la cuarta serie de datos
+serie3 <- ts(data[[3]])
+
+# Calcular y graficar ACF para la Serie 3
+acf(serie3, main = "Correlograma de Autocorrelación (ACF) para Serie 3", lag.max = 15)
+
+# Calcular y graficar PACF para la Serie 3
+pacf(serie3, main = "Correlograma de Autocorrelación Parcial (PACF) para Serie 3", lag.max = 15)
+```
+
+
+## ACF (Autocorrelación):
+
+- ACF lag 1 (0.955): Hay una autocorrelación muy alta y positiva en el primer retardo, lo que indica una fuerte dependencia temporal.
+- ACF lag 2 (0.908): La autocorrelación sigue siendo muy alta en el segundo retardo, lo que sugiere que los valores de la serie están altamente correlacionados con los valores de dos periodos anteriores.
+- ACF lag 3 (0.862): Aunque la autocorrelación disminuye ligeramente, sigue siendo muy significativa, lo que sugiere una fuerte persistencia en la serie.
+- ACF lag 4 (0.816): La autocorrelación positiva se mantiene alta.
+- ACF lag 5 (0.769): La tendencia de alta autocorrelación continúa, aunque está disminuyendo progresivamente.
+- ACF lag 6 a 15: A medida que aumentan los retardos, la autocorrelación va disminuyendo gradualmente, pero sigue siendo significativa en todos los retardos.
+
+Este patrón de autocorrelaciones altas que disminuyen lentamente sugiere una posible tendencia en la serie de tiempo o una estructura de memoria larga.
+
+## PACF (Autocorrelación Parcial):
+
+- PACF lag 1 (0.955): La PACF en el primer retardo es igual a la ACF, lo cual es típico y sugiere que este retardo tiene la mayor influencia sobre los valores actuales.
+- PACF lag 2 (-0.035): La PACF se vuelve muy pequeña y negativa, lo que sugiere que una vez que se controla por el primer retardo, el segundo retardo tiene poca influencia directa.
+- PACF lag 3 a 15: Los valores de PACF permanecen muy bajos y cercanos a cero (algunos negativos), lo que indica que no hay una autocorrelación parcial significativa más allá del primer retardo.
+
+Este patrón en la PACF sugiere que un modelo AR(1) podría ser adecuado para esta serie, ya que solo el primer retardo parece tener una influencia significativa cuando se controlan los demás retardos.
+
+## Q-Stat y Probabilidad:
+
+- Q-Stat: Los valores de la estadística Q de Ljung-Box son altos y aumentan a medida que se consideran más retardos, lo que indica que las autocorrelaciones acumulativas son significativas.
+Probabilidad: Los valores de probabilidad son todos prácticamente cero, lo que indica que las autocorrelaciones no son todas cero y que hay dependencia temporal significativa en la serie.
+
+## Conclusión:
+
+La serie muestra una fuerte dependencia temporal, con una alta autocorrelación en los primeros retardos que disminuye gradualmente. El patrón observado en la PACF, con un único retardo significativo, sugiere que un modelo AR(1) podría ser un buen punto de partida para modelar esta serie de tiempo. La serie parece tener una estructura que podría describirse con un proceso autoregresivo simple con alta persistencia temporal.
+
+
+
+
+# Serie 4
+
+```{r}
+# Selecciona la cuarta serie de datos
+serie4 <- ts(data[[4]])
+
+# Calcular y graficar ACF para la Serie 4
+acf(serie4, main = "Correlograma de Autocorrelación (ACF) para Serie 4", lag.max = 15)
+
+# Calcular y graficar PACF para la Serie 4
+pacf(serie4, main = "Correlograma de Autocorrelación Parcial (PACF) para Serie 4", lag.max = 15)
+```
+
+
+# ACF (Autocorrelación):
+
+- ACF lag 1 (0.217): Existe una autocorrelación positiva moderada en el primer retardo, lo que sugiere que los valores consecutivos están algo correlacionados entre sí.
+- ACF lag 2 (-0.400): La autocorrelación en el segundo retardo es negativa y significativa, lo que indica una posible reversión en los valores de la serie con respecto a la media.
+- ACF lag 3 (0.196): Vuelve a ser positiva, pero de menor magnitud, lo que sugiere una tendencia de oscilación en la serie.
+- ACF lag 4 (0.871): Este valor es muy alto, lo que indica una fuerte autocorrelación en el cuarto retardo.
+- ACF lag 5 (0.139): Hay una ligera autocorrelación positiva.
+- ACF lag 6 (-0.438): Nuevamente hay una autocorrelación negativa significativa.
+
+En general, los valores de ACF muestran un patrón en el que hay una autocorrelación fuerte a intervalos específicos, con alternancia entre valores positivos y negativos, lo que podría sugerir la presencia de un patrón cíclico en la serie.
+
+## PACF (Autocorrelación Parcial):
+
+- PACF lag 1 (0.217): La PACF en el primer retardo es igual a la ACF, lo cual es normal, ya que la autocorrelación parcial en el primer retardo es simplemente la autocorrelación.
+- PACF lag 2 (-0.469): Hay una autocorrelación parcial negativa significativa en el segundo retardo, lo que sugiere que al controlar por el primer retardo, la influencia de la segunda observación sobre la actual es negativa.
+- PACF lag 3 (0.571): Existe una autocorrelación parcial positiva significativa en el tercer retardo.
+- PACF lag 4 (0.742): Hay una fuerte autocorrelación parcial positiva en el cuarto retardo.
+- PACF lag 5 (-0.338): En el quinto retardo, la autocorrelación parcial es negativa.
+- PACF lag 6 (-0.066): Es casi cero, lo que indica poca o ninguna influencia directa de este retardo cuando se controlan los retardos anteriores.
+
+El PACF muestra un fuerte componente en los primeros retardos, especialmente en los retardos 2, 3 y 4. Esto sugiere que la serie de tiempo tiene una estructura autoregresiva, posiblemente un modelo AR(p) con p alrededor de 3 o 4.
+
+## Q-Stat y Probabilidad:
+
+Q-Stat: Es la estadística de Ljung-Box, que prueba si hay autocorrelación significativa en la serie en diferentes retardos. Un valor alto junto con un valor de probabilidad bajo (menor a 0.05) sugiere que las autocorrelaciones no son todas cero, lo que significa que la serie tiene dependencia temporal.
+Probabilidad: Los valores de probabilidad asociados con la Q-Stat son muy bajos (excepto para el primer retardo), lo que indica que hay autocorrelación significativa en la mayoría de los retardos.
+
+## Conclusión:
+
+Los patrones de ACF y PACF sugieren que la serie tiene componentes autoregresivos importantes, posiblemente con un orden AR(4) o similar. Los altos valores de Q-Stat y los bajos valores de probabilidad confirman la presencia de autocorrelación significativa en la serie. Podrías considerar modelos ARIMA para modelar esta serie de tiempo, donde el componente AR parece dominante.
+
+
+# Bucle para calcular y graficar ACF y PACF de cada columna
+
+```{r, echo=TRUE, eval = FALSE}
+for (col in columnas) {
+  # Convertir la columna a serie de tiempo
+  serie <- ts(data[[col]])
+  
+  # Graficar ACF
+  acf(serie, main = paste("Correlograma de Autocorrelación (ACF) para", col))
+  
+  # Graficar PACF
+  pacf(serie, main = paste("Correlograma de Autocorrelación Parcial (PACF) para", col))
+}
+```
+
+ 
